@@ -1,4 +1,4 @@
-FROM gitpod/workspace-full
+FROM gitpod/workspace-python
 
 ENV RETRIGGER=3
 ENV BUILDKIT_VERSION=0.10.3
