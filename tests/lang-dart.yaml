@@ -1,0 +1,13 @@
+- desc: "it should run dart"
+  command: ["dart", "--version"]
+  assert:
+  - status == 0
+  - stdout.indexOf("Dart") != -1
+  - stderr.length == 0
+
+- desc: "it should run melos"
+  command: ["melos", "--version"]
+  assert:
+  - status == 0
+  - stdout.length > 0
+  - stderr.length == 0

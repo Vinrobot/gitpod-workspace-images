@@ -1,0 +1,11 @@
+combiner:
+  combinations:
+    - name: base
+    - name: dart
+      ref:
+        - base
+      chunks:
+        - lang-dart
+  envvars:
+    - name: PATH
+      action: merge-unique
