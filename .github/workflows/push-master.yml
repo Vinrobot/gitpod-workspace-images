@@ -1,0 +1,48 @@
+name: Build from master
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install shfmt
+        run: |
+          curl -sSL https://github.com/mvdan/sh/releases/download/v3.5.0/shfmt_v3.5.0_linux_amd64 -o shfmt
+          sudo mv shfmt /usr/local/bin/shfmt && sudo chmod +x /usr/local/bin/shfmt
+
+      - name: Install dazzle
+        run: |
+          curl -sSL https://github.com/gitpod-io/dazzle/releases/download/v0.1.13/dazzle_0.1.13_Linux_x86_64.tar.gz | sudo tar -xvz -C /usr/local/bin
+
+      - name: Install buildkit
+        run: |
+          curl -sSL https://github.com/moby/buildkit/releases/download/v0.10.6/buildkit-v0.10.6.linux-amd64.tar.gz | sudo tar xvz -C /usr
+          sudo buildkitd --oci-worker=true --oci-worker-net=host --debug --group docker &
+          sudo su -c "while ! test -S /run/buildkit/buildkitd.sock; do sleep 0.1; done"
+          sudo chmod +777 /run/buildkit/buildkitd.sock
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Prepare image name
+        run: |
+          echo "IMAGE_NAME=ghcr.io/${GITHUB_REPOSITORY,,}" >> "${GITHUB_ENV}"
+
+      - name: Dazzle build
+        run: |
+          dazzle build ${IMAGE_NAME}
+
+      - name: Dazzle combine
+        run: |
+          dazzle combine ${IMAGE_NAME} --all
